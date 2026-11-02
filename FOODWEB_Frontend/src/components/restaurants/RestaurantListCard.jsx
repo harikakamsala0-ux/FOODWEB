@@ -20,6 +20,9 @@ function RestaurantListCard({ restaurant }) {
 
   const restaurantId = restaurant.restaurantId ?? restaurant.id;
 
+  // Check restaurant availability.
+  const isAvailable = restaurant.isActive !== false;
+
   // Read delivery time from the available API field.
   const deliveryTime =
     restaurant.delivaryTime ??
@@ -32,7 +35,9 @@ function RestaurantListCard({ restaurant }) {
       restaurant.imagePath || restaurant.image || FALLBACK_IMAGE
     );
   }, [restaurant.imagePath, restaurant.image]);
+
   const discount = restaurant.discount || "30% OFF";
+
   // Load saved restaurants from the session.
   const loadRestaurantWishlist = useCallback(async () => {
     try {
@@ -88,8 +93,12 @@ function RestaurantListCard({ restaurant }) {
     }
   };
 
-  // Navigate to the selected restaurant's menu.
+  // Navigate only when the restaurant is available.
   const handleCardClick = () => {
+    if (!isAvailable) {
+      return;
+    }
+
     if (
       !restaurantId ||
       !Number.isInteger(Number(restaurantId)) ||
@@ -112,7 +121,7 @@ function RestaurantListCard({ restaurant }) {
   const toggleRestaurantWishlist = async (e) => {
     e.stopPropagation();
 
-    if (wishlistLoading) return;
+    if (wishlistLoading || !isAvailable) return;
 
     if (
       !restaurantId ||
@@ -221,14 +230,22 @@ function RestaurantListCard({ restaurant }) {
 
   return (
     <article
-      className="rest-card"
+      className={`rest-card ${
+        !isAvailable ? "rest-card-unavailable" : ""
+      }`}
       onClick={handleCardClick}
-      style={{ cursor: "pointer" }}
+      style={{ cursor: isAvailable ? "pointer" : "not-allowed" }}
       role="button"
-      tabIndex={0}
-      aria-label={`View menu for ${restaurant.name}`}
+      tabIndex={isAvailable ? 0 : -1}
+      aria-disabled={!isAvailable}
+      aria-label={
+        isAvailable
+          ? `View menu for ${restaurant.name}`
+          : `${restaurant.name} is not available`
+      }
       onKeyDown={(e) => {
         if (e.target !== e.currentTarget) return;
+        if (!isAvailable) return;
 
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -248,6 +265,13 @@ function RestaurantListCard({ restaurant }) {
         {/* Image overlay */}
         <div className="rest-card-img-overlay"></div>
 
+        {/* Unavailable overlay */}
+        {!isAvailable && (
+          <div className="rest-unavailable-overlay">
+            <span>NOT AVAILABLE</span>
+          </div>
+        )}
+
         {/* Offer badge */}
         <div className="rest-card-discount-tag">
           <span className="rest-discount-icon">🏷️</span>
@@ -266,9 +290,11 @@ function RestaurantListCard({ restaurant }) {
         </div>
 
         {/* View Menu label */}
-        <div className="rest-card-view-menu">
-          View Menu →
-        </div>
+        {isAvailable && (
+          <div className="rest-card-view-menu">
+            View Menu →
+          </div>
+        )}
 
         {/* Session Wishlist button */}
         <button
@@ -277,7 +303,7 @@ function RestaurantListCard({ restaurant }) {
             isWishlisted ? "rest-wishlist-active" : ""
           }`}
           onClick={toggleRestaurantWishlist}
-          disabled={wishlistLoading}
+          disabled={wishlistLoading || !isAvailable}
           aria-label={
             isWishlisted
               ? "Remove restaurant from wishlist"

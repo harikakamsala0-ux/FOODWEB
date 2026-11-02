@@ -15482,3 +15482,39 @@ button {
     height: 75px;
   }
 }
+
+
+/* Unavailable restaurant card */
+.rest-card-unavailable {
+  cursor: not-allowed !important;
+}
+
+.rest-card-unavailable .rest-card-image {
+  filter: grayscale(100%);
+  opacity: 0.65;
+}
+
+.rest-unavailable-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.rest-unavailable-overlay span {
+  padding: 10px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  background: rgba(30, 30, 30, 0.9);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.rest-card-unavailable .rest-card-view-menu {
+  display: none;
+}
